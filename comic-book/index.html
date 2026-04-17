@@ -1,0 +1,189 @@
+<!-- BombGuard App — Comic Book v1.0.0.0 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comic Book — BombGuard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Exo+2:wght@500;600&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-void:        #000000;
+      --bg-surface:     #1a1a2e;
+      --bg-surface-alt: #16213e;
+      --color-primary:  #f5820a;
+      --color-primary-glow: #ffb347;
+      --color-secondary: #4a9fd4;
+      --color-secondary-deep: #1e5fa8;
+      --color-accent:   #ffd700;
+      --color-chrome:   #b0c4de;
+      --text-primary:   #f0f0f0;
+      --text-muted:     #888899;
+      --color-danger:   #e63946;
+      --color-success:  #2ecc71;
+      --gradient-primary: linear-gradient(135deg, #f5820a, #ffb347);
+      --gradient-secondary: linear-gradient(135deg, #1e5fa8, #4a9fd4);
+      --gradient-dark: linear-gradient(180deg, #1a1a2e, #000000);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-void);
+      color: var(--text-primary);
+      font-family: 'Nunito', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      background: var(--bg-surface);
+      border-bottom: 1px solid rgba(176, 196, 222, 0.15);
+    }
+
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--color-secondary);
+      text-decoration: none;
+      font-family: 'Exo 2', sans-serif;
+      font-weight: 600;
+      font-size: 0.9rem;
+      letter-spacing: 0.04em;
+      transition: color 200ms ease;
+    }
+
+    .back-link:hover { color: var(--color-primary); }
+
+    .header-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 1.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-badge {
+      font-family: 'Exo 2', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--color-accent);
+      background: rgba(255, 215, 0, 0.1);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-radius: 4px;
+      padding: 0.2rem 0.6rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1.5rem;
+    }
+
+    .comic-wrap {
+      width: 100%;
+      max-width: 800px;
+      background: var(--bg-surface);
+      border: 1px solid rgba(176, 196, 222, 0.15);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 32px rgba(0, 0, 0, 0.6), 0 0 24px rgba(245, 130, 10, 0.1);
+    }
+
+    .comic-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(176, 196, 222, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .comic-icon {
+      font-size: 1.75rem;
+      line-height: 1;
+    }
+
+    .comic-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-primary);
+    }
+
+    .comic-subtitle {
+      font-family: 'Exo 2', sans-serif;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.1rem;
+    }
+
+    .comic-frame {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      display: block;
+      border: none;
+      background: #000;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.25rem;
+      font-family: 'Exo 2', sans-serif;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(176, 196, 222, 0.08);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="../" class="back-link">&#8592; Back to Apps</a>
+    <span class="header-title">BombGuard</span>
+    <span class="header-badge">Comic</span>
+  </header>
+
+  <main>
+    <div class="comic-wrap">
+      <div class="comic-header">
+        <span class="comic-icon">📖</span>
+        <div>
+          <div class="comic-title">The Comic Book</div>
+          <div class="comic-subtitle">Read it live — flip through every page</div>
+        </div>
+      </div>
+      <iframe
+        class="comic-frame"
+        src="https://mixam.com/shares/69c72933125e1b6b00879c89/embed"
+        allowfullscreen="true"
+        allowtransparency="true"
+        frameborder="0"
+        title="BombGuard Comic Book"
+      ></iframe>
+    </div>
+  </main>
+
+  <footer>BombGuard © 2026 — v1.0.0.0</footer>
+
+  <script>
+    console.log('%cBombGuard Comic Book v1.0.0.0', 'color: #f5820a; font-weight: bold;');
+  </script>
+</body>
+</html>
