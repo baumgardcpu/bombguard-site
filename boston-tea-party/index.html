@@ -151,22 +151,43 @@ const LEVELS = [
 ];
 
 // ---------------------------------------------------------------------------
-// High scores (localStorage)
+// High scores — global leaderboard via API, localStorage fallback
 // ---------------------------------------------------------------------------
-function loadScores() {
-  try { return JSON.parse(localStorage.getItem("btp_scores") || "[]"); }
-  catch { return []; }
+const API = "/api/scores";
+let cachedScores = [];
+
+async function loadScores() {
+  try {
+    const r = await fetch(API);
+    if (!r.ok) throw new Error();
+    cachedScores = await r.json();
+    return cachedScores;
+  } catch {
+    try { return JSON.parse(localStorage.getItem("btp_scores") || "[]"); }
+    catch { return []; }
+  }
 }
-function saveScores(scores) {
-  localStorage.setItem("btp_scores", JSON.stringify(scores));
-}
-function addScore(name, pin, score, level) {
-  let scores = loadScores();
-  scores.push({ name, pin, score, level });
-  scores.sort((a, b) => b.score - a.score);
-  scores = scores.slice(0, 20);
-  saveScores(scores);
-  return scores;
+
+async function addScore(name, pin, score, level) {
+  try {
+    const r = await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, pin, score, level }),
+    });
+    if (!r.ok) throw new Error();
+    cachedScores = await r.json();
+    return cachedScores;
+  } catch {
+    let scores = [];
+    try { scores = JSON.parse(localStorage.getItem("btp_scores") || "[]"); } catch {}
+    scores.push({ name, pin, score, level });
+    scores.sort((a, b) => b.score - a.score);
+    scores = scores.slice(0, 20);
+    localStorage.setItem("btp_scores", JSON.stringify(scores));
+    cachedScores = scores;
+    return scores;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1296,8 +1317,9 @@ function updateNameEntry(dt, actions) {
   for (const a of actions) {
     if (a === "Enter" || a === "submit") {
       const name = nameChars.join(""), pin = pinChars.join("");
-      addScore(name, pin, player.score, currentLevel);
-      gameState = "leaderboard"; return;
+      gameState = "leaderboard";
+      addScore(name, pin, player.score, currentLevel); // async, updates cachedScores when done
+      return;
     }
     if (a === "Escape") { gameState = "leaderboard"; return; }
     if (a === "ArrowRight" || a === "Tab") entryCursor = (entryCursor + 1) % 7;
@@ -1338,8 +1360,14 @@ function updateNameEntry(dt, actions) {
 }
 
 // --- Leaderboard ---
+let leaderboardLoading = false;
 function updateLeaderboard(dt, actions) {
-  const scores = loadScores();
+  // Kick off a fetch the first time we enter this screen
+  if (!leaderboardLoading) {
+    leaderboardLoading = true;
+    loadScores().then(s => { cachedScores = s; });
+  }
+  const scores = cachedScores;
   ctx.fillStyle = "#0A0520"; ctx.fillRect(0, 0, W, H);
   ctx.textAlign = "center";
   ctx.fillStyle = "#FFD700"; ctx.font = "bold 48px Consolas,monospace";
@@ -1372,7 +1400,7 @@ function updateLeaderboard(dt, actions) {
   ctx.textAlign = "center"; ctx.fillStyle = "#8C8CA0"; ctx.font = "13px Consolas,monospace";
   ctx.fillText(isMobile ? "Tap to continue" : "Press any key to continue", W/2, H-40);
 
-  for (const a of actions) { gameState = "title"; return; }
+  for (const a of actions) { leaderboardLoading = false; gameState = "title"; return; }
 }
 
 // ---------------------------------------------------------------------------
