@@ -168,6 +168,34 @@
   <footer><a href="/">← Back to BombGuard</a></footer>
 
   <script>
+    const SUPABASE_URL = 'https://mgalwgarvsjgalaqyeok.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nYWx3Z2FydnNqZ2FsYXF5ZW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3ODkzNDcsImV4cCI6MjA5MTM2NTM0N30.Bc6WoDPYhNQjwlXtFTJQEGxaVsOXwzEpbddW_pJZFNU';
+
+    function getPlatform() {
+      const ua = navigator.userAgent;
+      if (/iPhone|iPad|iPod/.test(ua)) return 'ios';
+      if (/Android/.test(ua)) return 'android';
+      return 'desktop';
+    }
+
+    async function logInstall() {
+      let country = null, city = null;
+      try {
+        const geo = await fetch('https://ipapi.co/json/').then(r => r.json());
+        country = geo.country_name || null;
+        city = geo.city || null;
+      } catch (_) {}
+      fetch(`${SUPABASE_URL}/rest/v1/app_events`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        },
+        body: JSON.stringify({ event_type: 'install', app: 'bombguard', platform: getPlatform(), country, city })
+      }).catch(() => {});
+    }
+
     const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
     const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
 
@@ -197,6 +225,7 @@
       if (outcome === 'accepted') {
         document.getElementById('install-btn').style.display = 'none';
         document.getElementById('already-installed').style.display = 'block';
+        logInstall();
       }
       deferredPrompt = null;
     });
@@ -204,6 +233,7 @@
     window.addEventListener('appinstalled', () => {
       document.getElementById('install-btn').style.display = 'none';
       document.getElementById('already-installed').style.display = 'block';
+      logInstall();
     });
   </script>
 </body>
