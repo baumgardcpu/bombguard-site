@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BombGuard — Stats</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d0d1a;
+      color: #f0f0f0;
+      font-family: 'Nunito', sans-serif;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    header img {
+      width: 64px;
+      margin-bottom: 0.75rem;
+    }
+
+    header h1 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 2rem;
+      color: #f5820a;
+      letter-spacing: 2px;
+    }
+
+    header p {
+      color: #888899;
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      max-width: 700px;
+      margin: 0 auto 2.5rem;
+    }
+
+    .card {
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      border-radius: 12px;
+      padding: 1.5rem 1rem;
+      text-align: center;
+    }
+
+    .card .number {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: #f5820a;
+      line-height: 1;
+    }
+
+    .card .label {
+      font-size: 0.8rem;
+      color: #888899;
+      margin-top: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .card.blue .number { color: #4a9fd4; }
+
+    .section-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+      color: #888899;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      max-width: 700px;
+      margin: 0 auto 0.75rem;
+      padding-left: 0.25rem;
+    }
+
+    .table-wrap {
+      max-width: 700px;
+      margin: 0 auto 2rem;
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: #16213e;
+      color: #888899;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 0.75rem;
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+
+    td {
+      padding: 0.7rem 1rem;
+      border-top: 1px solid #2a2a4a;
+      color: #f0f0f0;
+    }
+
+    tr:hover td { background: #16213e; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge.install { background: #f5820a22; color: #f5820a; }
+    .badge.visit   { background: #4a9fd422; color: #4a9fd4; }
+    .badge.ios     { background: #ffffff15; color: #ccc; }
+    .badge.android { background: #2ecc7122; color: #2ecc71; }
+    .badge.desktop { background: #ffffff10; color: #aaa; }
+
+    .loading { text-align: center; color: #888899; padding: 3rem; }
+    .refresh-btn {
+      display: block;
+      margin: 0 auto;
+      background: #f5820a;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1.5rem;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 1px;
+    }
+
+    .refresh-btn:hover { background: #ffb347; }
+  </style>
+</head>
+<body>
+
+<header>
+  <img src="/icon.png" alt="BombGuard">
+  <h1>BOMBGUARD STATS</h1>
+  <p id="last-updated">Loading...</p>
+</header>
+
+<div class="grid">
+  <div class="card">
+    <div class="number" id="total-visits">—</div>
+    <div class="label">Total Visits</div>
+  </div>
+  <div class="card blue">
+    <div class="number" id="total-installs">—</div>
+    <div class="label">Total Installs</div>
+  </div>
+  <div class="card">
+    <div class="number" id="visits-today">—</div>
+    <div class="label">Visits Today</div>
+  </div>
+  <div class="card blue">
+    <div class="number" id="installs-today">—</div>
+    <div class="label">Installs Today</div>
+  </div>
+</div>
+
+<p class="section-title">Recent Events</p>
+<div class="table-wrap">
+  <div class="loading" id="table-loading">Loading events...</div>
+  <table id="events-table" style="display:none">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Platform</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody id="events-body"></tbody>
+  </table>
+</div>
+
+<button class="refresh-btn" onclick="loadStats()">Refresh</button>
+
+<script>
+  const SUPABASE_URL = 'https://mgalwgarvsjgalaqyeok.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nYWx3Z2FydnNqZ2FsYXF5ZW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3ODkzNDcsImV4cCI6MjA5MTM2NTM0N30.Bc6WoDPYhNQjwlXtFTJQEGxaVsOXwzEpbddW_pJZFNU';
+
+  async function query(params) {
+    const url = new URL(`${SUPABASE_URL}/rest/v1/app_events`);
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+    const res = await fetch(url, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    return res.json();
+  }
+
+  function formatTime(iso) {
+    const d = new Date(iso);
+    return d.toLocaleString();
+  }
+
+  function todayISO() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  async function loadStats() {
+    document.getElementById('last-updated').textContent = 'Refreshing...';
+
+    const [all, recent] = await Promise.all([
+      query({ select: 'event_type,created_at', order: 'created_at.desc' }),
+      query({ select: 'event_type,platform,created_at', order: 'created_at.desc', limit: 50 })
+    ]);
+
+    const today = todayISO();
+    let visits = 0, installs = 0, visitsToday = 0, installsToday = 0;
+
+    all.forEach(e => {
+      const isToday = e.created_at.startsWith(today);
+      if (e.event_type === 'visit')   { visits++;   if (isToday) visitsToday++; }
+      if (e.event_type === 'install') { installs++; if (isToday) installsToday++; }
+    });
+
+    document.getElementById('total-visits').textContent   = visits.toLocaleString();
+    document.getElementById('total-installs').textContent = installs.toLocaleString();
+    document.getElementById('visits-today').textContent   = visitsToday.toLocaleString();
+    document.getElementById('installs-today').textContent = installsToday.toLocaleString();
+
+    const tbody = document.getElementById('events-body');
+    tbody.innerHTML = recent.map(e => `
+      <tr>
+        <td><span class="badge ${e.event_type}">${e.event_type}</span></td>
+        <td><span class="badge ${e.platform || 'desktop'}">${e.platform || 'desktop'}</span></td>
+        <td>${formatTime(e.created_at)}</td>
+      </tr>
+    `).join('');
+
+    document.getElementById('table-loading').style.display = 'none';
+    document.getElementById('events-table').style.display = 'table';
+    document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+  }
+
+  loadStats();
+</script>
+</body>
+</html>
