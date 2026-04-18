@@ -5,6 +5,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#4a9fd4">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BombGuard">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/icon.png">
   <title>BombGuard — App Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -281,6 +287,13 @@
         tag: "Travel"
       },
       {
+        name: "Comic Book",
+        description: "Read the BombGuard comic book live — flip through every page.",
+        url: "comic-book/",
+        icon: "📖",
+        tag: "Comic"
+      },
+      {
         name: "SoDumb.app",
         description: "Connect, share, and engage with your community.",
         url: "sodumb/",
@@ -310,6 +323,13 @@
           <span class="app-tag">${app.tag}</span>
         </a>
       `).join('');
+    }
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
     }
   </script>
 </body>
