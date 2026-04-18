@@ -113,6 +113,7 @@
       padding: 0.7rem 1rem;
       border-top: 1px solid #2a2a4a;
       color: #f0f0f0;
+      white-space: nowrap;
     }
 
     tr:hover td { background: #16213e; }
@@ -185,6 +186,7 @@
       <tr>
         <th>Type</th>
         <th>Platform</th>
+        <th>Location</th>
         <th>Time</th>
       </tr>
     </thead>
@@ -222,7 +224,7 @@
 
     const [all, recent] = await Promise.all([
       query({ select: 'event_type,created_at', order: 'created_at.desc' }),
-      query({ select: 'event_type,platform,created_at', order: 'created_at.desc', limit: 50 })
+      query({ select: 'event_type,platform,country,city,created_at', order: 'created_at.desc', limit: 50 })
     ]);
 
     const today = todayISO();
@@ -244,6 +246,7 @@
       <tr>
         <td><span class="badge ${e.event_type}">${e.event_type}</span></td>
         <td><span class="badge ${e.platform || 'desktop'}">${e.platform || 'desktop'}</span></td>
+        <td>${e.city && e.country ? `${e.city}, ${e.country}` : e.country || '—'}</td>
         <td>${formatTime(e.created_at)}</td>
       </tr>
     `).join('');
