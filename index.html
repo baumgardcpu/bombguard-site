@@ -204,6 +204,31 @@
       .app-card:hover { transform: none; }
     }
 
+    .app-card-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .android-dl-btn {
+      display: block;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #4ade80;
+      text-decoration: none;
+      padding: 4px 8px;
+      border: 1px solid rgba(74, 222, 128, 0.4);
+      border-radius: 6px;
+      transition: background 200ms ease;
+      font-family: 'Exo 2', sans-serif;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .android-dl-btn:hover {
+      background: rgba(74, 222, 128, 0.1);
+    }
+
     /* Prevent iOS font-size inflation */
     html { -webkit-text-size-adjust: 100%; }
   </style>
@@ -273,6 +298,14 @@
 
     const APPS = [
       {
+        name: "BombStream",
+        description: "Live TV, IPTV playlists, and all your streaming services — in one place.",
+        url: "https://stream.bombguard.app",
+        icon: "📺",
+        tag: "Media",
+        androidUrl: "https://github.com/baumgardcpu/bombstream/releases/download/v1.0.0/BombStream-v1.0.0.apk"
+      },
+      {
         name: "Boston Tea Party",
         description: "Historical strategy game set during the American Revolution.",
         url: "boston-tea-party/",
@@ -330,12 +363,15 @@
       grid.innerHTML = '<p class="empty-state">No apps yet. Check back soon.</p>';
     } else {
       grid.innerHTML = APPS.map(app => `
-        <a href="${app.url}" class="app-card" ${app.url.startsWith('http') ? 'target="_blank" rel="noopener"' : ''}>
-          <div class="app-icon">${app.icon}</div>
-          <div class="app-name">${app.name}</div>
-          <div class="app-desc">${app.description}</div>
-          <span class="app-tag">${app.tag}</span>
-        </a>
+        <div class="app-card-wrap">
+          <a href="${app.url}" class="app-card" ${app.url.startsWith('http') ? 'target="_blank" rel="noopener"' : ''}>
+            <div class="app-icon">${app.icon}</div>
+            <div class="app-name">${app.name}</div>
+            <div class="app-desc">${app.description}</div>
+            <span class="app-tag">${app.tag}</span>
+          </a>
+          ${app.androidUrl ? `<a href="${app.androidUrl}" class="android-dl-btn" download>📱 Android APK</a>` : ''}
+        </div>
       `).join('');
     }
   </script>
