@@ -138,16 +138,17 @@ const CHEST_TYPES = [
 
 const LEVELS = [
   null, // 1-indexed
-  { spawnInt: 5.0, speedMul: 1.0, chestInt: 3.5, maxRc: 4 },
-  { spawnInt: 4.5, speedMul: 1.1, chestInt: 3.2, maxRc: 5 },
-  { spawnInt: 4.0, speedMul: 1.2, chestInt: 3.0, maxRc: 5 },
-  { spawnInt: 3.5, speedMul: 1.3, chestInt: 2.8, maxRc: 6 },
-  { spawnInt: 3.0, speedMul: 1.4, chestInt: 2.5, maxRc: 6 },
-  { spawnInt: 2.5, speedMul: 1.5, chestInt: 2.3, maxRc: 7 },
-  { spawnInt: 2.0, speedMul: 1.6, chestInt: 2.0, maxRc: 7 },
-  { spawnInt: 1.8, speedMul: 1.7, chestInt: 1.8, maxRc: 8 },
-  { spawnInt: 1.5, speedMul: 1.9, chestInt: 1.5, maxRc: 9 },
-  { spawnInt: 999, speedMul: 1.0, chestInt: 2.0, maxRc: 0 }, // boss
+  { spawnInt: 5.0,  speedMul: 1.0,  chestInt: 3.5, maxRc: 4 },
+  { spawnInt: 4.5,  speedMul: 1.1,  chestInt: 3.2, maxRc: 5 },
+  { spawnInt: 4.0,  speedMul: 1.2,  chestInt: 3.0, maxRc: 5 },
+  { spawnInt: 3.5,  speedMul: 1.3,  chestInt: 2.8, maxRc: 6 },
+  { spawnInt: 3.3,  speedMul: 1.26, chestInt: 2.5, maxRc: 5 }, // 10% easier
+  { spawnInt: 2.75, speedMul: 1.35, chestInt: 2.3, maxRc: 6 }, // 10% easier
+  { spawnInt: 2.2,  speedMul: 1.44, chestInt: 2.0, maxRc: 6 }, // 10% easier
+  { spawnInt: 1.98, speedMul: 1.53, chestInt: 1.8, maxRc: 7 }, // 10% easier
+  { spawnInt: 1.65, speedMul: 1.71, chestInt: 1.5, maxRc: 8 }, // 10% easier
+  { spawnInt: 999,  speedMul: 1.0,  chestInt: 2.0, maxRc: 0 }, // boss (general)
+  { spawnInt: 999,  speedMul: 1.0,  chestInt: 2.0, maxRc: 0 }, // final boss (queen)
 ];
 
 // ---------------------------------------------------------------------------
@@ -618,14 +619,14 @@ class BossObj {
     this.hp = 50; this.maxHp = 50; this.alive = true; this.facing = -1;
     this.walkFrame = 0; this.slashTimer = 2; this.slashing = false; this.slashAnim = 0;
     this.hitFlash = 0; this.dying = false; this.deathTimer = 2;
-    this.S = 2.5;
+    this.S = 2.0;
   }
   update(dt, px) {
     if (this.dying) { this.deathTimer -= dt; if (this.deathTimer <= 0) this.alive = false; return; }
     if (this.hitFlash > 0) this.hitFlash -= dt;
     if (Math.abs(this.x - px) > 50) {
       const d = px > this.x ? 1 : -1; this.facing = d;
-      this.x += 2.5 * d; this.walkFrame += dt * 4;
+      this.x += 1.8 * d; this.walkFrame += dt * 4;
     } else { this.facing = px > this.x ? 1 : -1; this.walkFrame = 0; }
     this.x = clamp(this.x, DECK_LEFT + 30, DECK_RIGHT - 30);
     if (this.slashing) {
@@ -725,6 +726,168 @@ class BossObj {
 }
 
 // ---------------------------------------------------------------------------
+// Queen Elizabeth boss (level 11) — throws her crown as a projectile
+// ---------------------------------------------------------------------------
+function drawQueenCrown(cx, cy, w, h) {
+  ctx.fillStyle = "#FFD700";
+  ctx.beginPath();
+  ctx.moveTo(cx - w, cy);
+  ctx.lineTo(cx - w, cy - h * 0.5);
+  ctx.lineTo(cx - w * 0.5, cy - h * 0.25);
+  ctx.lineTo(cx - w * 0.2, cy - h);
+  ctx.lineTo(cx, cy - h * 0.35);
+  ctx.lineTo(cx + w * 0.2, cy - h);
+  ctx.lineTo(cx + w * 0.5, cy - h * 0.25);
+  ctx.lineTo(cx + w, cy - h * 0.5);
+  ctx.lineTo(cx + w, cy);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "#C8A000"; ctx.lineWidth = 1; ctx.stroke();
+  ctx.fillStyle = "#C80000";
+  ctx.beginPath(); ctx.arc(cx, cy - h * 0.42, w * 0.14, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#0050B0";
+  ctx.beginPath(); ctx.arc(cx - w * 0.48, cy - h * 0.12, w * 0.1, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx + w * 0.48, cy - h * 0.12, w * 0.1, 0, Math.PI * 2); ctx.fill();
+}
+
+class QueenBossObj {
+  constructor() {
+    this.x = DECK_RIGHT - 140; this.y = DECK_Y;
+    this.hp = 70; this.maxHp = 70; this.alive = true; this.facing = -1;
+    this.walkFrame = 0; this.throwTimer = 2.5; this.throwing = false; this.throwAnim = 0;
+    this.crownThrown = false;
+    this.hitFlash = 0; this.dying = false; this.deathTimer = 2.5;
+    this.S = 3.0;
+    this.crowns = [];
+  }
+  update(dt, px) {
+    if (this.dying) {
+      this.deathTimer -= dt;
+      for (const c of this.crowns) { c.x += c.vx * dt; c.y += c.vy * dt; c.vy += 500 * dt; if (c.x < 0 || c.x > W || c.y > H) c.alive = false; }
+      this.crowns = this.crowns.filter(c => c.alive);
+      if (this.deathTimer <= 0) this.alive = false;
+      return;
+    }
+    if (this.hitFlash > 0) this.hitFlash -= dt;
+    if (Math.abs(this.x - px) > 100) {
+      const d = px > this.x ? 1 : -1; this.facing = d;
+      this.x += 1.5 * d; this.walkFrame += dt * 3;
+    } else { this.facing = px > this.x ? 1 : -1; this.walkFrame = 0; }
+    this.x = clamp(this.x, DECK_LEFT + 50, DECK_RIGHT - 50);
+    if (this.throwing) {
+      this.throwAnim -= dt;
+      if (!this.crownThrown && this.throwAnim <= 0.28) {
+        this.crownThrown = true;
+        const d = this.facing, s = this.S;
+        // Launch crown in an arc so it arcs down toward deck level
+        this.crowns.push({ x: this.x + d * s * 14, y: this.y - s * 35, vx: 270 * d, vy: -120, alive: true });
+      }
+      if (this.throwAnim <= 0) { this.throwing = false; this.crownThrown = false; }
+    } else {
+      this.throwTimer -= dt;
+      if (this.throwTimer <= 0) { this.throwing = true; this.throwAnim = 0.65; this.throwTimer = rand(2.2, 3.8); }
+    }
+    for (const c of this.crowns) {
+      c.x += c.vx * dt; c.y += c.vy * dt; c.vy += 500 * dt;
+      if (c.x < 0 || c.x > W || c.y > H) c.alive = false;
+    }
+    this.crowns = this.crowns.filter(c => c.alive);
+  }
+  takeHit() { this.hp--; this.hitFlash = 0.15; if (this.hp <= 0) this.dying = true; }
+  hitRect() {
+    const s = this.S;
+    return { x: this.x - 20 * s, y: this.y - 75 * s, w: 40 * s, h: 75 * s };
+  }
+  draw() {
+    const x = this.x, y = this.y, f = this.facing, s = this.S;
+    const si = v => v * s;
+    const bob = Math.sin(this.walkFrame) * 3;
+    if (this.dying && Math.floor(this.deathTimer * 10) % 2 === 0) return;
+    const flash = this.hitFlash > 0;
+    const dressC = flash ? "#FF70E0" : "#6B0080";
+    const skinC  = flash ? "#FFE8D0" : "#F0C8A0";
+
+    // Bell-shaped dress bottom
+    ctx.fillStyle = dressC;
+    ctx.beginPath();
+    ctx.moveTo(x - si(38), y + bob); ctx.lineTo(x + si(38), y + bob);
+    ctx.lineTo(x + si(22), y - si(28) + bob); ctx.lineTo(x - si(22), y - si(28) + bob);
+    ctx.closePath(); ctx.fill();
+    // Gold trim on dress hem
+    ctx.strokeStyle = "#FFD700"; ctx.lineWidth = si(2);
+    ctx.beginPath(); ctx.moveTo(x - si(38), y + bob); ctx.lineTo(x + si(38), y + bob); ctx.stroke();
+    ctx.strokeStyle = "#C8A800"; ctx.lineWidth = si(1);
+    ctx.beginPath(); ctx.moveTo(x - si(22), y - si(28) + bob); ctx.lineTo(x + si(22), y - si(28) + bob); ctx.stroke();
+    // Bodice
+    ctx.fillStyle = dressC;
+    ctx.fillRect(x - si(13), y - si(57) + bob, si(26), si(31));
+    ctx.strokeStyle = "#FFD700"; ctx.lineWidth = si(1.5);
+    ctx.beginPath(); ctx.moveTo(x, y - si(57) + bob); ctx.lineTo(x, y - si(28) + bob); ctx.stroke();
+
+    // Elizabethan ruff (white collar)
+    ctx.fillStyle = "#F0EEE2";
+    for (let i = -2; i <= 2; i++) {
+      ctx.beginPath();
+      ctx.ellipse(x + i * si(4.5), y - si(57) + bob, si(5), si(4), i * 0.25, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Arms
+    const armY = y - si(50) + bob;
+    if (this.throwing) {
+      const prog = clamp(1 - this.throwAnim / 0.65, 0, 1);
+      ctx.fillStyle = dressC; ctx.fillRect(x - si(18), armY, si(5), si(15));
+      ctx.strokeStyle = dressC; ctx.lineWidth = si(4);
+      const xt = x + f * si(13 + 20 * prog), yt = armY - si(12) * Math.sin(prog * Math.PI);
+      ctx.beginPath(); ctx.moveTo(x + f * si(13), armY); ctx.lineTo(xt, yt); ctx.stroke();
+      ctx.fillStyle = skinC; ctx.beginPath(); ctx.arc(xt, yt, si(3), 0, Math.PI * 2); ctx.fill();
+    } else {
+      ctx.fillStyle = dressC;
+      ctx.fillRect(x - si(18), armY, si(5), si(14));
+      ctx.fillRect(x + si(13), armY, si(5), si(14));
+      // Scepter held in left hand
+      ctx.strokeStyle = "#C8A800"; ctx.lineWidth = si(2);
+      ctx.beginPath(); ctx.moveTo(x - si(15), armY + si(14)); ctx.lineTo(x - si(15), armY - si(10)); ctx.stroke();
+      ctx.fillStyle = "#FFD700"; ctx.beginPath(); ctx.arc(x - si(15), armY - si(10), si(4), 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#C80000"; ctx.beginPath(); ctx.arc(x - si(15), armY - si(10), si(2.5), 0, Math.PI * 2); ctx.fill();
+    }
+
+    // Head
+    const headY = y - si(70) + bob;
+    ctx.fillStyle = skinC; ctx.beginPath(); ctx.arc(x, headY, si(10), 0, Math.PI * 2); ctx.fill();
+    // Silver/white curly hair
+    ctx.fillStyle = "#D0CEC4";
+    ctx.beginPath(); ctx.ellipse(x, headY + si(3), si(12), si(6), 0, Math.PI, 0); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x - si(9), headY - si(2), si(5), si(9), -0.25, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x + si(9), headY - si(2), si(5), si(9),  0.25, 0, Math.PI * 2); ctx.fill();
+    // Eyes
+    const bex = x + f * si(2);
+    ctx.fillStyle = "#000";
+    ctx.beginPath(); ctx.arc(bex - si(3), headY, si(1.5), 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(bex + si(2), headY, si(1.5), 0, Math.PI * 2); ctx.fill();
+    // Stern frown
+    ctx.strokeStyle = "#703020"; ctx.lineWidth = si(1.5);
+    ctx.beginPath(); ctx.arc(x, headY + si(5), si(4), 0.25, Math.PI - 0.25, true); ctx.stroke();
+
+    // Crown on head
+    drawQueenCrown(x, headY - si(10), si(12), si(10));
+
+    // HP bar
+    if (!this.dying) {
+      const bw = si(52), bh = 10, bx2 = x - bw / 2, by2 = headY - si(28);
+      ctx.fillStyle = "#282828"; ctx.fillRect(bx2, by2, bw, bh);
+      ctx.fillStyle = "#8B00C8"; ctx.fillRect(bx2, by2, bw * (this.hp / this.maxHp), bh);
+      ctx.strokeStyle = "#FFD700"; ctx.lineWidth = 1; ctx.strokeRect(bx2, by2, bw, bh);
+    }
+
+    // Flying crown projectiles
+    for (const c of this.crowns) {
+      drawQueenCrown(c.x, c.y, 13, 11);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Drawing helpers for game objects
 // ---------------------------------------------------------------------------
 function drawChest(c) {
@@ -790,8 +953,8 @@ function drawHUD(player, level, timeLeft, boss) {
   // (removed kills display for space)
 
   ctx.textAlign = "center";
-  const lvlTxt = level <= 9 ? `LEVEL ${level}` : "BOSS BATTLE";
-  ctx.fillStyle = level === 10 ? "#FFD700" : "#FFF"; ctx.font = "bold 18px Consolas,monospace";
+  const lvlTxt = level <= 9 ? `LEVEL ${level}` : level === 10 ? "BOSS BATTLE" : "FINAL BOSS";
+  ctx.fillStyle = level >= 10 ? "#FFD700" : "#FFF"; ctx.font = "bold 18px Consolas,monospace";
   ctx.fillText(lvlTxt, W/2, 20);
 
   if (level <= 9) {
@@ -799,8 +962,10 @@ function drawHUD(player, level, timeLeft, boss) {
     const m = Math.floor(timeLeft/60), s = Math.floor(timeLeft%60);
     ctx.fillText(`${m}:${s.toString().padStart(2,"0")}`, W/2, 40);
   } else if (boss && !boss.dying) {
-    ctx.font = "13px Consolas,monospace"; ctx.fillStyle = "#FF6464";
-    ctx.fillText(`Boss HP: ${boss.hp}/${boss.maxHp}`, W/2, 40);
+    ctx.font = "13px Consolas,monospace";
+    ctx.fillStyle = level === 11 ? "#8B00C8" : "#FF6464";
+    const bossLabel = level === 11 ? "Queen HP" : "Boss HP";
+    ctx.fillText(`${bossLabel}: ${boss.hp}/${boss.maxHp}`, W/2, 40);
   }
 
   // Health bar
@@ -843,6 +1008,8 @@ function drawInstructions(level) {
     ctx.fillText("Use buttons below to move, pick up, throw, and shoot!", W/2, H-8);
   } else if (level === 10) {
     ctx.fillText("WASD = Move | F = Shoot (heals!) | SPACE = Throw tea | Dodge the sword!", W/2, H-8);
+  } else if (level === 11) {
+    ctx.fillText("WASD = Move | F = Shoot the Queen (heals!) | Dodge her crown!", W/2, H-8);
   } else {
     ctx.fillText("WASD = Move | E = Pick up | SPACE = Throw overboard | F = Shoot | ESC = Quit", W/2, H-8);
   }
@@ -856,6 +1023,7 @@ let currentLevel = 1;
 let player = new PlayerObj();
 let chests = [], redcoats = [], bullets = [], particles = [], floats = [], hearts = [];
 let boss = null;
+let queenBoss = null;
 let timeLeft = LEVEL_DURATION;
 let spawnTimer = 1, rcTimer = 2;
 let tick = 0;
@@ -875,6 +1043,7 @@ function resetLevel(level) {
   currentLevel = level;
   chests = []; redcoats = []; bullets = []; particles = []; floats = []; hearts = [];
   boss = level === 10 ? new BossObj() : null;
+  queenBoss = level === 11 ? new QueenBossObj() : null;
   timeLeft = LEVEL_DURATION;
   spawnTimer = 1; rcTimer = 2; bossSlashCd = 0;
   player.carrying = null; player.musketLoaded = true; player.reloadTimer = 0;
@@ -896,11 +1065,12 @@ function spawnChest() {
 
 function startGame() {
   player = new PlayerObj();
-  currentLevel = 1;
+  const startLevel = parseInt(new URLSearchParams(window.location.search).get("level")) || 1;
+  currentLevel = startLevel;
   redcoatsKilled = 0;
   gameState = "transition";
   transitionTimer = 2.5;
-  resetLevel(1);
+  resetLevel(startLevel);
 }
 
 function pointInRect(px, py, r) {
@@ -951,7 +1121,7 @@ function updateTitle(dt, actions) {
   ctx.fillStyle = "#FFF"; ctx.font = "20px Consolas,monospace";
   ctx.fillText("Storm the Mayflower as Benjamin Franklin!", W/2, 260);
   ctx.fillText("Throw tea overboard. Fight the Redcoats.", W/2, 296);
-  ctx.fillText("Survive 10 levels and defeat the Boss!", W/2, 332);
+  ctx.fillText("Survive 11 levels and defeat the Queen!", W/2, 332);
   ctx.fillStyle = "#A0A0C8"; ctx.font = "20px Consolas,monospace";
   ctx.fillText(isMobile ? "Tap to start" : "Press any key to start", W/2, 420);
   ctx.fillText(isMobile ? "" : "H = High Scores    ESC = Quit", W/2, 456);
@@ -986,11 +1156,16 @@ function updateTransition(dt, actions) {
     ctx.fillText(`LEVEL ${currentLevel}`, W/2, H/2-40);
     ctx.fillStyle = "#C89632"; ctx.font = "20px Consolas,monospace";
     ctx.fillText("Difficulty: " + "*".repeat(currentLevel), W/2, H/2+20);
-  } else {
+  } else if (currentLevel === 10) {
     ctx.fillStyle = "#FF3C3C"; ctx.font = "bold 48px Consolas,monospace";
     ctx.fillText("BOSS BATTLE", W/2, H/2-40);
     ctx.fillStyle = "#FF9696"; ctx.font = "20px Consolas,monospace";
     ctx.fillText("Defeat the Redcoat General!", W/2, H/2+20);
+  } else {
+    ctx.fillStyle = "#8B00C8"; ctx.font = "bold 48px Consolas,monospace";
+    ctx.fillText("FINAL BOSS", W/2, H/2-40);
+    ctx.fillStyle = "#D080FF"; ctx.font = "20px Consolas,monospace";
+    ctx.fillText("Queen Elizabeth wants her tea back!", W/2, H/2+20);
   }
   ctx.fillStyle = "#FFF"; ctx.font = "13px Consolas,monospace";
   ctx.fillText(`Score: ${player.score}`, W/2, H/2+60);
@@ -1089,13 +1264,31 @@ function updatePlaying(dt, actions) {
       for (let i = 0; i < 6; i++) particles.push(makeParticle(player.x, player.y-20, "#FF6464", 200, 0.4));
     }
     if (boss.dying && !boss.alive) {
-      // Boss defeated — victory!
       player.score += 10 * 200 + 5000;
-      gameState = "victory"; return;
+      currentLevel = 11; resetLevel(11);
+      gameState = "transition"; transitionTimer = 2.5; return;
     }
   } else if (boss && !boss.alive) {
     player.score += 10 * 200 + 5000;
-    gameState = "victory"; return;
+    currentLevel = 11; resetLevel(11);
+    gameState = "transition"; transitionTimer = 2.5; return;
+  }
+
+  // Queen Boss (level 11)
+  if (queenBoss && queenBoss.alive) {
+    queenBoss.update(dt, player.x);
+    for (const c of queenBoss.crowns) {
+      if (c.alive && Math.abs(c.x - player.x) < 25 && Math.abs(c.y - (player.y - 22)) < 45) {
+        player.takeHit(20); c.alive = false;
+        floats.push({ x: player.x, y: player.y - 60, text: "-20", color: "#FF5050", life: 1.2 });
+        for (let i = 0; i < 6; i++) particles.push(makeParticle(player.x, player.y - 20, "#FFD700", 200, 0.4));
+      }
+    }
+    if (queenBoss.dying && !queenBoss.alive) {
+      player.score += 11 * 200 + 10000; gameState = "victory"; return;
+    }
+  } else if (queenBoss && !queenBoss.alive) {
+    player.score += 11 * 200 + 10000; gameState = "victory"; return;
   }
 
   // Bullets
@@ -1128,6 +1321,17 @@ function updatePlaying(dt, actions) {
           floats.push({ x: boss.x, y: boss.y-80, text: "+HP!", color: "#64FF64", life: 1.2 });
           floats.push({ x: boss.x+20, y: boss.y-60, text: "+100", color: "#FFFF64", life: 1.2 });
           for (let i = 0; i < 8; i++) particles.push(makeParticle(b.x, b.y, "#FFC832", 150, 0.5));
+        }
+      }
+      if (b.alive && queenBoss && !queenBoss.dying && queenBoss.alive) {
+        const qr = queenBoss.hitRect();
+        if (pointInRect(b.x, b.y, qr)) {
+          queenBoss.takeHit(); b.alive = false;
+          player.health = Math.min(HEALTH_MAX, player.health + BOSS_HIT_HEAL);
+          player.score += 150;
+          floats.push({ x: queenBoss.x, y: queenBoss.y - 110, text: "+HP!", color: "#64FF64", life: 1.2 });
+          floats.push({ x: queenBoss.x + 20, y: queenBoss.y - 90, text: "+150", color: "#FFFF64", life: 1.2 });
+          for (let i = 0; i < 8; i++) particles.push(makeParticle(b.x, b.y, "#8B00C8", 150, 0.5));
         }
       }
     }
@@ -1173,6 +1377,7 @@ function updatePlaying(dt, actions) {
   for (const h of hearts) drawHeartPickup(h);
   for (const rc of redcoats) rc.draw();
   if (boss && boss.alive) boss.draw();
+  if (queenBoss && queenBoss.alive) queenBoss.draw();
   player.draw();
   for (const b of bullets) drawBullet(b);
   for (const p of particles) drawParticle(p);
@@ -1182,7 +1387,7 @@ function updatePlaying(dt, actions) {
     ctx.font = "bold 18px Consolas,monospace"; ctx.textAlign = "center";
     ctx.fillText(f.text, f.x, f.y); ctx.globalAlpha = 1;
   }
-  drawHUD(player, currentLevel, timeLeft, boss);
+  drawHUD(player, currentLevel, timeLeft, boss || queenBoss);
   drawInstructions(currentLevel);
 }
 
@@ -1197,8 +1402,9 @@ function updatePaused(actions) {
   for (const h of hearts) drawHeartPickup(h);
   for (const rc of redcoats) rc.draw();
   if (boss && boss.alive) boss.draw();
+  if (queenBoss && queenBoss.alive) queenBoss.draw();
   player.draw();
-  drawHUD(player, currentLevel, timeLeft, boss);
+  drawHUD(player, currentLevel, timeLeft, boss || queenBoss);
 
   // Dim overlay
   ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, 0, W, H);
@@ -1317,8 +1523,8 @@ function updateNameEntry(dt, actions) {
   for (const a of actions) {
     if (a === "Enter" || a === "submit") {
       const name = nameChars.join(""), pin = pinChars.join("");
+      pendingScorePromise = addScore(name, pin, player.score, currentLevel);
       gameState = "leaderboard";
-      addScore(name, pin, player.score, currentLevel); // async, updates cachedScores when done
       return;
     }
     if (a === "Escape") { gameState = "leaderboard"; return; }
@@ -1361,11 +1567,14 @@ function updateNameEntry(dt, actions) {
 
 // --- Leaderboard ---
 let leaderboardLoading = false;
+let pendingScorePromise = null;
 function updateLeaderboard(dt, actions) {
-  // Kick off a fetch the first time we enter this screen
+  // Use addScore's promise if available — avoids a race where a concurrent GET resolves with stale data after the POST.
   if (!leaderboardLoading) {
     leaderboardLoading = true;
-    loadScores().then(s => { cachedScores = s; });
+    const p = pendingScorePromise || loadScores();
+    pendingScorePromise = null;
+    p.then(s => { cachedScores = s; });
   }
   const scores = cachedScores;
   ctx.fillStyle = "#0A0520"; ctx.fillRect(0, 0, W, H);

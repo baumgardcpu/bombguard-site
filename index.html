@@ -1,4 +1,4 @@
-﻿<!-- BombGuard App — v1.0.0.1 -->
+﻿<!-- BombGuard App — v1.0.0.4 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -220,11 +220,11 @@
     <div id="apps-grid" class="apps-grid"></div>
   </main>
 
-  <footer>BombGuard &copy; 2026 &nbsp;|&nbsp; v1.0.0.1 &nbsp;|&nbsp; <a href="/stats" style="color:rgba(255,255,255,0.5);text-decoration:none;">Stats</a></footer>
+  <footer>BombGuard &copy; 2026 &nbsp;|&nbsp; v1.0.0.4 &nbsp;|&nbsp; <a href="/stats" style="color:rgba(255,255,255,0.5);text-decoration:none;">Stats</a></footer>
 
   <script>
-    // BombGuard App — v1.0.0.1
-    console.log('%cBombGuard v1.0.0.1', 'color: #f5820a; font-weight: bold;');
+    // BombGuard App — v1.0.0.4
+    console.log('%cBombGuard v1.0.0.4', 'color: #f5820a; font-weight: bold;');
 
     // =====================================================
     //  APP DIRECTORY — Edit this array to add/remove apps
@@ -273,17 +273,17 @@
 
     const APPS = [
       {
+        name: "BombStream",
+        description: "Live TV, IPTV playlists, and all your streaming services — in one place.",
+        url: "https://stream.bombguard.app",
+        icon: `<img src="/bombstreamlogo.png" alt="BombStream" style="width:40px;height:40px;object-fit:contain">`,
+        tag: "Media"
+      },
+      {
         name: "Boston Tea Party",
         description: "Historical strategy game set during the American Revolution.",
         url: "boston-tea-party/",
         icon: `<img src="${makeFranklinIcon()}" alt="Player Character" style="width:36px;height:36px;image-rendering:pixelated">`,
-        tag: "Game"
-      },
-      {
-        name: "Flock Off",
-        description: "Multiplayer sheep-herding arena. Sprint, scatter, and steal the flock.",
-        url: "flock-off/",
-        icon: `<svg viewBox="0 0 36 36" width="36" height="36" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="17" r="7" fill="#f0f0f0"/><circle cx="18" cy="13" r="7" fill="#f0f0f0"/><circle cx="26" cy="17" r="7" fill="#f0f0f0"/><ellipse cx="18" cy="22" rx="12" ry="8" fill="#f0f0f0"/><ellipse cx="29" cy="24" rx="4" ry="3.5" fill="#ccc"/><circle cx="31" cy="23" r="1" fill="#333"/><rect x="11" y="29" width="2.5" height="6" rx="1" fill="#666"/><rect x="15" y="29" width="2.5" height="6" rx="1" fill="#666"/><rect x="20" y="29" width="2.5" height="6" rx="1" fill="#666"/><rect x="24" y="29" width="2.5" height="6" rx="1" fill="#666"/></svg>`,
         tag: "Game"
       },
       {

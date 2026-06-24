@@ -1,7 +1,7 @@
 {
   "name": "bombguard-site",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "dependencies": {
-    "@vercel/kv": "^1.0.0"
+    "@upstash/redis": "^1.34.3"
   }
 }

@@ -1,4 +1,4 @@
-const CACHE = 'bombguard-v2';
+const CACHE = 'bombguard-v4';
 const ASSETS = ['/'];
 
 self.addEventListener('install', e => {

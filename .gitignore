@@ -1,4 +1,6 @@
 build-btp/
+node_modules/
+dist/
 
 .vercel
 .env*.local
