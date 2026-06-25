@@ -12,8 +12,10 @@ leaderboard (`api/scores.js`, Upstash Redis):
 - **Strip secrets from API responses** — the leaderboard must never return `pin`.
   Use the `publicView()` allowlist projection (SECURITY.md §4).
 - **Validate leaderboard input server-side**; rate-limit the write path (§5, §6).
-- **`vercel.json` keeps the 5 security headers** (§8); it's headers-only — do not
-  add a SPA rewrite that swallows real 404s.
+- **`vercel.json` keeps the 6 security headers** (§8); it's headers-only — do not
+  add a SPA rewrite that swallows real 404s. The hub's CSP is the one app that
+  needs `script-src 'self' 'unsafe-inline'` (hand-written inline scripts) and
+  `frame-src` for the iframed sub-apps — don't tighten those without testing.
 - Leaderboard store creds read under either `KV_*` or `UPSTASH_*` env vars; none
   are `VITE_`-prefixed.
 
