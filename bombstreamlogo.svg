@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="72 58 398 398" width="398" height="398">
+  <defs>
+    <radialGradient id="body" cx="38%" cy="34%" r="72%">
+      <stop offset="0%" stop-color="#4a5a70"/>
+      <stop offset="28%" stop-color="#232c3a"/>
+      <stop offset="62%" stop-color="#0c1017"/>
+      <stop offset="100%" stop-color="#05070b"/>
+    </radialGradient>
+    <radialGradient id="rim" cx="50%" cy="50%" r="50%">
+      <stop offset="82%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="95%" stop-color="#8fb9dd" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#1b2330" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="play" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#cfeaff"/>
+      <stop offset="42%" stop-color="#4A9FD4"/>
+      <stop offset="100%" stop-color="#1f5f90"/>
+    </linearGradient>
+    <linearGradient id="fragA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3a4760"/>
+      <stop offset="100%" stop-color="#0d131d"/>
+    </linearGradient>
+    <linearGradient id="fragB" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#26303f"/>
+      <stop offset="100%" stop-color="#070a0f"/>
+    </linearGradient>
+    <radialGradient id="spark" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fffbe6"/>
+      <stop offset="30%" stop-color="#FFD36b"/>
+      <stop offset="65%" stop-color="#FF8A1E"/>
+      <stop offset="100%" stop-color="#c2410c" stop-opacity="0.15"/>
+    </radialGradient>
+    <linearGradient id="collar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3b4658"/>
+      <stop offset="50%" stop-color="#171d27"/>
+      <stop offset="100%" stop-color="#2a3342"/>
+    </linearGradient>
+    <linearGradient id="fuse" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7a6a44"/>
+      <stop offset="100%" stop-color="#c9b06b"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+  </defs>
+
+  <!-- fragmentation shards behind/around the bomb -->
+  <g>
+    
+  </g>
+
+  <!-- fuse + spark -->
+  <g>
+    <path d="M 336.4 188.5
+             C 316 150, 332 120, 372 112"
+          fill="none" stroke="#2a2416" stroke-width="15" stroke-linecap="round"/>
+    <path d="M 336.4 188.5
+             C 316 150, 332 120, 372 112"
+          fill="none" stroke="url(#fuse)" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 6"/>
+    <g filter="url(#glow)">
+      <polygon points="392,112 403,70 414,104 452,86 423,116 455,134 416,133 406,174 395,133 360,150 383,120 352,100"
+               fill="url(#spark)"/>
+      <circle cx="400" cy="112" r="12" fill="#fffbe6"/>
+    </g>
+  </g>
+
+  <!-- collar / cap -->
+  <g transform="rotate(20 288 176)">
+    <rect x="258" y="150" width="60" height="52" rx="10" fill="url(#collar)" stroke="#05070b" stroke-width="3"/>
+    <rect x="252" y="188" width="72" height="20" rx="8" fill="url(#collar)" stroke="#05070b" stroke-width="3"/>
+    <rect x="266" y="156" width="10" height="40" rx="5" fill="#6d83a0" opacity="0.5"/>
+  </g>
+
+  <!-- bomb sphere -->
+  <g>
+    <circle cx="236.0" cy="300.0" r="150.0" fill="url(#body)"/>
+    <circle cx="236.0" cy="300.0" r="150.0" fill="url(#rim)"/>
+    <circle cx="236.0" cy="300.0" r="148.0" fill="none" stroke="#9cc3e4" stroke-opacity="0.25" stroke-width="2"/>
+    <!-- glossy highlights -->
+    <ellipse cx="188" cy="238" rx="52" ry="34" fill="#dff0ff" opacity="0.22" filter="url(#soft)" transform="rotate(-32 188 238)"/>
+    <circle cx="300" cy="250" r="9" fill="#eaf5ff" opacity="0.5"/>
+    <circle cx="286" cy="268" r="4" fill="#eaf5ff" opacity="0.4"/>
+  </g>
+
+  <!-- play button -->
+  <g transform="translate(-6 0)">
+    <path d="M 196 236 Q 190 231 198 236 L 300 294 Q 312 301 300 308 L 198 366 Q 190 371 196 365 Z"
+          fill="url(#play)" stroke="#dff0ff" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M 206 252 L 284 300 L 206 348 Z" fill="#bfe6ff" opacity="0.28"/>
+  </g>
+</svg>
