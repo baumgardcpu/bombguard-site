@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <title>BombGuard — Stats</title>
   <link rel="stylesheet" href="/theme.css">
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
@@ -112,6 +113,9 @@
       text-align: left;
     }
 
+    th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    td.place { white-space: normal; overflow-wrap: anywhere; }
+
     td {
       padding: 0.7rem 1rem;
       border-top: 1px solid var(--border-glass);
@@ -129,11 +133,43 @@
       font-weight: 600;
     }
 
-    .badge.install { background: rgba(255, 179, 71, 0.15); color: var(--accent-secondary); }
-    .badge.visit   { background: rgba(74, 159, 212, 0.15); color: var(--accent-primary); }
     .badge.ios     { background: var(--border-glass); color: var(--text-primary); }
     .badge.android { background: rgba(46, 204, 113, 0.15); color: var(--success); }
     .badge.desktop { background: var(--surface-tint); color: var(--text-secondary); }
+
+    /* 14-day visits chart: one bar per day, installs as an orange cap */
+    .chart {
+      display: grid;
+      grid-template-columns: repeat(14, 1fr);
+      align-items: end;
+      gap: 6px;
+      height: 160px;
+      padding: 1.25rem 1rem 0.5rem;
+    }
+    .chart .col { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+    .chart .bar { background: var(--accent-primary); border-radius: 4px 4px 0 0; min-height: 2px; }
+    .chart .cap { background: var(--accent-secondary); border-radius: 4px 4px 0 0; margin-bottom: 2px; }
+    .chart-labels {
+      display: grid;
+      grid-template-columns: repeat(14, 1fr);
+      gap: 6px;
+      padding: 0 1rem 1rem;
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+    .legend { font-size: 0.75rem; color: var(--text-secondary); padding: 0 1rem 1rem; }
+    .legend span::before {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin: 0 0.35rem 0 0.75rem;
+      vertical-align: -1px;
+    }
+    .legend .v::before { background: var(--accent-primary); margin-left: 0; }
+    .legend .i::before { background: var(--accent-secondary); }
 
     .loading { text-align: center; color: var(--text-secondary); padding: 3rem; }
     .bone {
@@ -154,6 +190,7 @@
     @media (prefers-reduced-motion: reduce) {
       .bone { animation: none; }
     }
+
     .refresh-btn {
       display: block;
       margin: 0 auto;
@@ -170,6 +207,55 @@
     }
 
     .refresh-btn:hover { background: var(--accent-primary-hover); }
+
+    .actions { display: flex; justify-content: center; gap: 0.75rem; }
+    .actions .refresh-btn { margin: 0; }
+    .ghost-btn {
+      background: none;
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      padding: 0.6rem 1.25rem;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+    .ghost-btn:hover { color: var(--text-primary); border-color: var(--text-secondary); }
+
+    .signin {
+      max-width: 380px;
+      margin: 0 auto;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.75rem 1.5rem;
+    }
+    .signin label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+    }
+    .signin input[type="password"] {
+      width: 100%;
+      background: var(--bg-base);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font: inherit;
+      padding: 0.65rem 0.8rem;
+      margin-bottom: 1rem;
+    }
+    .signin input[type="password"]:focus { outline: 2px solid var(--accent-primary); outline-offset: 1px; }
+    .signin .refresh-btn { width: 100%; }
+    .signin .msg { min-height: 1.2rem; margin-top: 0.75rem; font-size: 0.85rem; color: var(--danger); text-align: center; }
+
+    [hidden] { display: none !important; }
   </style>
 </head>
 <body>
@@ -177,148 +263,203 @@
 <header>
   <img src="/icon.png" alt="BombGuard">
   <h1>BOMBGUARD STATS</h1>
-  <p id="last-updated">Loading...</p>
+  <p id="last-updated">Owner sign-in required</p>
 </header>
 
-<div class="grid">
-  <div class="card">
-    <div class="number" id="total-visits">—</div>
-    <div class="label">Total Visits</div>
-  </div>
-  <div class="card blue">
-    <div class="number" id="total-installs">—</div>
-    <div class="label">Total Installs</div>
-  </div>
-  <div class="card">
-    <div class="number" id="visits-today">—</div>
-    <div class="label">Visits Today</div>
-  </div>
-  <div class="card blue">
-    <div class="number" id="installs-today">—</div>
-    <div class="label">Installs Today</div>
-  </div>
-</div>
+<form class="signin" id="signin" hidden>
+  <!-- username field lets password managers file the secret under this page -->
+  <input type="text" name="username" value="bombguard-stats" autocomplete="username" hidden>
+  <label for="secret">Admin secret</label>
+  <input type="password" id="secret" name="password" autocomplete="current-password" required>
+  <button class="refresh-btn" type="submit">Sign in</button>
+  <p class="msg" id="signin-msg" role="alert"></p>
+</form>
 
-<p class="section-title">Recent Events</p>
-<div class="table-wrap">
-  <div class="loading skeleton-rows" id="table-loading" aria-busy="true" aria-label="Loading events">
-    <span class="bone" style="width: 92%"></span>
-    <span class="bone" style="width: 78%"></span>
-    <span class="bone" style="width: 86%"></span>
-    <span class="bone" style="width: 70%"></span>
-    <span class="bone" style="width: 82%"></span>
+<main id="dashboard" hidden>
+  <div class="grid">
+    <div class="card">
+      <div class="number" id="total-visits">—</div>
+      <div class="label">Total Visits</div>
+    </div>
+    <div class="card blue">
+      <div class="number" id="total-installs">—</div>
+      <div class="label">Total Installs</div>
+    </div>
+    <div class="card">
+      <div class="number" id="visits-today">—</div>
+      <div class="label">Visits Today</div>
+    </div>
+    <div class="card blue">
+      <div class="number" id="installs-today">—</div>
+      <div class="label">Installs Today</div>
+    </div>
   </div>
-  <table id="events-table" style="display:none">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Platform</th>
-        <th>Location</th>
-        <th>Time</th>
-      </tr>
-    </thead>
-    <tbody id="events-body"></tbody>
-  </table>
-</div>
 
-<button class="refresh-btn" onclick="loadStats()">Refresh</button>
+  <p class="section-title">Last 14 Days</p>
+  <div class="table-wrap">
+    <div class="chart" id="daily-chart" role="img" aria-label="Visits and installs per day"></div>
+    <div class="chart-labels" id="daily-labels"></div>
+    <p class="legend"><span class="v">Visits</span><span class="i">Installs</span></p>
+  </div>
+
+  <p class="section-title">Platforms</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Platform</th><th class="num">Visits</th><th class="num">Installs</th></tr></thead>
+      <tbody id="platforms-body"></tbody>
+    </table>
+  </div>
+
+  <p class="section-title">Top Locations</p>
+  <div class="table-wrap">
+    <div class="loading skeleton-rows" id="table-loading" aria-busy="true" aria-label="Loading stats">
+      <span class="bone" style="width: 92%"></span>
+      <span class="bone" style="width: 78%"></span>
+      <span class="bone" style="width: 86%"></span>
+    </div>
+    <table id="locations-table" hidden>
+      <thead><tr><th>Location</th><th class="num">Visits</th><th class="num">Installs</th></tr></thead>
+      <tbody id="locations-body"></tbody>
+    </table>
+  </div>
+
+  <div class="actions">
+    <button class="refresh-btn" type="button" id="refresh-btn">Refresh</button>
+    <button class="ghost-btn" type="button" id="signout-btn">Sign out</button>
+  </div>
+</main>
 
 <script>
-  const SUPABASE_URL = 'https://mgalwgarvsjgalaqyeok.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nYWx3Z2FydnNqZ2FsYXF5ZW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3ODkzNDcsImV4cCI6MjA5MTM2NTM0N30.Bc6WoDPYhNQjwlXtFTJQEGxaVsOXwzEpbddW_pJZFNU';
+  // The admin secret lives in sessionStorage (this tab only, gone when it
+  // closes). The server is the real gate: /api/stats checks it on every call.
+  const SECRET_KEY = 'bombguard-stats-secret';
 
-  async function query(params) {
-    const url = new URL(`${SUPABASE_URL}/rest/v1/app_events`);
-    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-    const res = await fetch(url, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-    });
-    if (!res.ok) throw new Error(`Stats request failed (${res.status})`);
-    return res.json();
+  function getSecret() {
+    try { return sessionStorage.getItem(SECRET_KEY) || ''; } catch (_) { return ''; }
+  }
+  function setSecret(value) {
+    try { value ? sessionStorage.setItem(SECRET_KEY, value) : sessionStorage.removeItem(SECRET_KEY); } catch (_) {}
   }
 
-  // Event fields are visitor-supplied (platform, city, country), so escape them
-  // before they go into innerHTML.
+  const $ = id => document.getElementById(id);
+
   function esc(value) {
     return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   }
 
   // Badge class names come from a fixed allowlist, never from the data itself.
-  const EVENT_TYPES = ['visit', 'install'];
   const PLATFORMS = ['ios', 'android', 'desktop'];
-
   const NUMBER_IDS = ['total-visits', 'total-installs', 'visits-today', 'installs-today'];
-  function showNumberSkeletons() {
+
+  class AuthError extends Error {}
+
+  async function fetchStats(secret) {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    const res = await fetch(`/api/stats?tz=${encodeURIComponent(tz)}`, {
+      headers: { Authorization: `Bearer ${secret}` },
+      cache: 'no-store'
+    });
+    if (res.status === 401) throw new AuthError('Wrong secret');
+    if (res.status === 429) throw new Error('Too many attempts — wait a few minutes');
+    if (!res.ok) throw new Error(`Stats request failed (${res.status})`);
+    return res.json();
+  }
+
+  function showSignIn(message = '') {
+    $('dashboard').hidden = true;
+    $('signin').hidden = false;
+    $('signin-msg').textContent = message;
+    $('last-updated').textContent = 'Owner sign-in required';
+    $('secret').focus();
+  }
+
+  function showLoading() {
+    $('signin').hidden = true;
+    $('dashboard').hidden = false;
+    $('last-updated').textContent = 'Refreshing...';
     NUMBER_IDS.forEach(id => {
-      document.getElementById(id).innerHTML = '<span class="bone" style="width: 3.5rem; height: 2rem; vertical-align: middle"></span>';
+      $(id).innerHTML = '<span class="bone" style="width: 3.5rem; height: 2rem; vertical-align: middle"></span>';
     });
   }
 
-  function formatTime(iso) {
-    const d = new Date(iso);
-    return d.toLocaleString();
+  function showError(message) {
+    NUMBER_IDS.forEach(id => { $(id).textContent = '—'; });
+    $('locations-table').hidden = true;
+    const box = $('table-loading');
+    box.hidden = false;
+    box.className = 'error-state';
+    box.removeAttribute('aria-busy');
+    box.innerHTML = `<strong>Couldn't load stats</strong>${esc(message)}`;
+    $('last-updated').textContent = 'Last refresh failed';
   }
 
-  function todayISO() {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  function renderDaily(daily) {
+    const max = Math.max(1, ...daily.map(d => d.visits + d.installs));
+    $('daily-chart').innerHTML = daily.map(d => `
+      <div class="col" title="${esc(d.day)}: ${d.visits} visits, ${d.installs} installs">
+        ${d.installs ? `<div class="cap" style="height:${(d.installs / max) * 100}%"></div>` : ''}
+        <div class="bar" style="height:${(d.visits / max) * 100}%"></div>
+      </div>`).join('');
+    // label every other day so 14 labels fit at phone width
+    $('daily-labels').innerHTML = daily.map((d, i) =>
+      `<span>${i % 2 === daily.length % 2 ? '' : esc(String(d.day).slice(5).replace('-', '/'))}</span>`).join('');
+  }
+
+  function render(stats) {
+    const t = stats.totals;
+    $('total-visits').textContent   = t.visits.toLocaleString();
+    $('total-installs').textContent = t.installs.toLocaleString();
+    $('visits-today').textContent   = t.visitsToday.toLocaleString();
+    $('installs-today').textContent = t.installsToday.toLocaleString();
+
+    renderDaily(stats.daily);
+
+    $('platforms-body').innerHTML = stats.platforms.map(p => {
+      const cls = PLATFORMS.includes(p.platform) ? p.platform : 'desktop';
+      return `<tr>
+        <td><span class="badge ${cls}">${esc(p.platform)}</span></td>
+        <td class="num">${p.visits.toLocaleString()}</td>
+        <td class="num">${p.installs.toLocaleString()}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="3">No events yet</td></tr>';
+
+    $('locations-body').innerHTML = stats.locations.map(l => `<tr>
+        <td class="place">${esc(l.city ? `${l.city}, ${l.country}` : l.country)}</td>
+        <td class="num">${l.visits.toLocaleString()}</td>
+        <td class="num">${l.installs.toLocaleString()}</td>
+      </tr>`).join('') || '<tr><td colspan="3">No located events yet</td></tr>';
+
+    $('table-loading').hidden = true;
+    $('locations-table').hidden = false;
+    $('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
   }
 
   async function loadStats() {
-    document.getElementById('last-updated').textContent = 'Refreshing...';
-    showNumberSkeletons();
-
-    let all, recent;
+    const secret = getSecret();
+    if (!secret) return showSignIn();
+    showLoading();
     try {
-      [all, recent] = await Promise.all([
-        query({ select: 'event_type,created_at', order: 'created_at.desc' }),
-        query({ select: 'event_type,platform,country,city,created_at', order: 'created_at.desc', limit: 50 })
-      ]);
+      render(await fetchStats(secret));
     } catch (err) {
+      if (err instanceof AuthError) {
+        setSecret('');
+        return showSignIn('That secret was not accepted.');
+      }
       console.error('[BombGuard stats]', err);
-      NUMBER_IDS.forEach(id => { document.getElementById(id).textContent = '—'; });
-      document.getElementById('events-table').style.display = 'none';
-      const box = document.getElementById('table-loading');
-      box.style.display = 'block';
-      box.className = 'error-state';
-      box.removeAttribute('aria-busy');
-      box.innerHTML = '<strong>Couldn\'t load stats</strong>Check your connection, then hit Refresh.';
-      document.getElementById('last-updated').textContent = 'Last refresh failed';
-      return;
+      showError(err.message);
     }
-
-    const today = todayISO();
-    let visits = 0, installs = 0, visitsToday = 0, installsToday = 0;
-
-    all.forEach(e => {
-      const isToday = e.created_at.startsWith(today);
-      if (e.event_type === 'visit')   { visits++;   if (isToday) visitsToday++; }
-      if (e.event_type === 'install') { installs++; if (isToday) installsToday++; }
-    });
-
-    document.getElementById('total-visits').textContent   = visits.toLocaleString();
-    document.getElementById('total-installs').textContent = installs.toLocaleString();
-    document.getElementById('visits-today').textContent   = visitsToday.toLocaleString();
-    document.getElementById('installs-today').textContent = installsToday.toLocaleString();
-
-    const tbody = document.getElementById('events-body');
-    tbody.innerHTML = recent.map(e => {
-      const type = EVENT_TYPES.includes(e.event_type) ? e.event_type : '';
-      const platform = PLATFORMS.includes(e.platform) ? e.platform : 'desktop';
-      const place = e.city && e.country ? `${e.city}, ${e.country}` : e.country || '—';
-      return `
-      <tr>
-        <td><span class="badge ${type}">${esc(e.event_type)}</span></td>
-        <td><span class="badge ${platform}">${esc(e.platform || 'desktop')}</span></td>
-        <td>${esc(place)}</td>
-        <td>${esc(formatTime(e.created_at))}</td>
-      </tr>`;
-    }).join('');
-
-    document.getElementById('table-loading').style.display = 'none';
-    document.getElementById('events-table').style.display = 'table';
-    document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
   }
+
+  $('signin').addEventListener('submit', e => {
+    e.preventDefault();
+    const value = $('secret').value.trim();
+    if (!value) return;
+    setSecret(value);
+    $('secret').value = '';
+    loadStats();
+  });
+  $('refresh-btn').addEventListener('click', loadStats);
+  $('signout-btn').addEventListener('click', () => { setSecret(''); showSignIn(); });
 
   loadStats();
 </script>
