@@ -1,4 +1,7 @@
 {
+  "rewrites": [
+    { "source": "/stats", "destination": "/stats.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

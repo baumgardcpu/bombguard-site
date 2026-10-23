@@ -1,4 +1,4 @@
-const CACHE = 'bombguard-v10';
+const CACHE = 'bombguard-v11';
 const ASSETS = ['/', '/theme.css'];
 
 self.addEventListener('install', e => {
@@ -13,7 +13,12 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
+// Only same-origin GETs go through the worker. Cross-origin requests (Google
+// Fonts, ipapi.co, Supabase) are left to the browser: re-fetching them from here
+// subjects them to the CSP's connect-src, which blocked the font stylesheet.
 self.addEventListener('fetch', e => {
+  const url = new URL(e.request.url);
+  if (e.request.method !== 'GET' || url.origin !== self.location.origin) return;
   e.respondWith(
     fetch(e.request).catch(() => caches.match(e.request))
   );
