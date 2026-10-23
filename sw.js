@@ -1,4 +1,4 @@
-const CACHE = 'bombguard-v11';
+const CACHE = 'bombguard-v12';
 const ASSETS = ['/', '/theme.css'];
 
 self.addEventListener('install', e => {
