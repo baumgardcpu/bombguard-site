@@ -6,7 +6,8 @@
 <title>Boston Tea Party — Storm the Ship!</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; }
+/* Shell colour mirrors --bg-base in the ecosystem theme.css; game art is untouched. */
+html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a2e; touch-action: none; }
 canvas { display: block; margin: 0 auto; }
 #ui-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -30,10 +31,30 @@ canvas { display: block; margin: 0 auto; }
 #btn-pickup { right: 160px; bottom: 100px; width: 60px; height: 60px; font-size: 12px; }
 #btn-throw { right: 90px; bottom: 40px; width: 70px; height: 70px; font-size: 12px; }
 #btn-shoot { right: 20px; bottom: 100px; width: 60px; height: 60px; font-size: 12px; }
+/* Shown if a script error stops the game loop, instead of a silently frozen canvas. */
+#crash-overlay {
+  position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+  background: rgba(10, 5, 32, 0.92); font-family: Consolas, monospace; text-align: center; padding: 24px;
+}
+#crash-overlay[hidden] { display: none; }
+#crash-overlay h2 { color: #FFD700; font-size: 28px; margin-bottom: 10px; }
+#crash-overlay p { color: #A0A0C8; font-size: 15px; margin-bottom: 22px; }
+#crash-overlay button {
+  font: bold 16px Consolas, monospace; color: #1a1a2e; background: #FFD700; border: 0;
+  border-radius: 8px; padding: 12px 26px; cursor: pointer;
+}
+#crash-overlay button:active { transform: scale(0.97); }
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
+<div id="crash-overlay" role="alertdialog" aria-labelledby="crash-title" hidden>
+  <div>
+    <h2 id="crash-title">The tea's gone overboard</h2>
+    <p>Something went wrong and the game stopped.</p>
+    <button type="button" id="crash-restart">Tap to restart</button>
+  </div>
+</div>
 <div id="touch-controls">
   <div id="dpad">
     <div id="dpad-left" class="touch-btn">◀</div>
@@ -156,14 +177,31 @@ const LEVELS = [
 // ---------------------------------------------------------------------------
 const API = "/api/scores";
 let cachedScores = [];
+// True when the last load fell back to scores saved on this device.
+let scoresFromDevice = false;
+
+// Script errors stop the requestAnimationFrame loop; show a restart screen instead
+// of leaving players on a frozen frame. Resource load errors (img/audio) are ignored.
+function showCrashScreen(err) {
+  console.error("[Boston Tea Party] Game stopped:", err);
+  const overlay = document.getElementById("crash-overlay");
+  if (overlay) overlay.hidden = false;
+}
+window.addEventListener("error", e => { if (e instanceof ErrorEvent) showCrashScreen(e.error || e.message); });
+window.addEventListener("unhandledrejection", e => showCrashScreen(e.reason));
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("crash-restart")?.addEventListener("click", () => location.reload());
+});
 
 async function loadScores() {
   try {
     const r = await fetch(API);
     if (!r.ok) throw new Error();
     cachedScores = await r.json();
+    scoresFromDevice = false;
     return cachedScores;
   } catch {
+    scoresFromDevice = true;
     try { return JSON.parse(localStorage.getItem("btp_scores") || "[]"); }
     catch { return []; }
   }
@@ -1567,14 +1605,16 @@ function updateNameEntry(dt, actions) {
 
 // --- Leaderboard ---
 let leaderboardLoading = false;
+let leaderboardReady = false;
 let pendingScorePromise = null;
 function updateLeaderboard(dt, actions) {
   // Use addScore's promise if available — avoids a race where a concurrent GET resolves with stale data after the POST.
   if (!leaderboardLoading) {
     leaderboardLoading = true;
+    leaderboardReady = false;
     const p = pendingScorePromise || loadScores();
     pendingScorePromise = null;
-    p.then(s => { cachedScores = s; });
+    p.then(s => { cachedScores = s; }).finally(() => { leaderboardReady = true; });
   }
   const scores = cachedScores;
   ctx.fillStyle = "#0A0520"; ctx.fillRect(0, 0, W, H);
@@ -1602,9 +1642,18 @@ function updateLeaderboard(dt, actions) {
     ctx.fillText(String(e.level || "?"), 660, ry);
     if (isCurrent) { ctx.strokeStyle = "#FFD700"; ctx.lineWidth = 1; ctx.strokeRect(180, ry-16, 600, 30); }
   }
-  if (!scores.length) {
+  if (!leaderboardReady && !scores.length) {
+    // Animated dots so a slow network reads as "working", not "empty".
+    const dots = ".".repeat(1 + Math.floor(performance.now() / 400) % 3);
+    ctx.textAlign = "center"; ctx.fillStyle = "#A0A0C8"; ctx.font = "18px Consolas,monospace";
+    ctx.fillText(`Loading scores${dots}`, W/2, 250);
+  } else if (!scores.length) {
     ctx.textAlign = "center"; ctx.fillStyle = "#8C8CA0"; ctx.font = "18px Consolas,monospace";
     ctx.fillText("No scores yet — be the first!", W/2, 250);
+  }
+  if (leaderboardReady && scoresFromDevice) {
+    ctx.textAlign = "center"; ctx.fillStyle = "#FFC864"; ctx.font = "13px Consolas,monospace";
+    ctx.fillText("Offline — showing scores saved on this device", W/2, H-64);
   }
   ctx.textAlign = "center"; ctx.fillStyle = "#8C8CA0"; ctx.font = "13px Consolas,monospace";
   ctx.fillText(isMobile ? "Tap to continue" : "Press any key to continue", W/2, H-40);

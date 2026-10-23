@@ -1,0 +1,37 @@
+/* ============================================================================
+   BombGuard ecosystem — canonical design tokens (single source of truth)
+   ----------------------------------------------------------------------------
+   Dark-mode only. Bold, high-contrast, game-inspired. See CLAUDE.md
+   "Design System" for the rationale.
+
+   How apps consume this:
+   - CSS-variable apps (Social Media App, holgry): copy this file into `src/`
+     and import it once in the entry module BEFORE the app's own stylesheet,
+     then reference the vars (or alias local names to them).
+   - Tailwind apps (HaulHero, BombStream): mirror these hex values in
+     `tailwind.config.js` under `theme.extend.colors.brand` and keep them in
+     sync with this file.
+
+   Keep this file and every copy/mirror identical to the values below.
+   ============================================================================ */
+
+:root {
+  /* Core palette */
+  --bg-base:          #1A1A2E; /* page background            */
+  --bg-elevated:      #16213E; /* cards, panels, surfaces     */
+  --accent-primary:   #4A9FD4; /* steel blue — primary accent */
+  --accent-secondary: #FFB347; /* warm orange — secondary     */
+  --text-primary:     #F0F0F0;
+  --text-secondary:   #888899;
+  --border-glass:     rgba(255, 255, 255, 0.15);
+  --surface-tint:     rgba(176, 196, 222, 0.15);
+
+  /* Derived / shared */
+  --accent-primary-hover: #3D8BC0;
+  --danger:  #E63946;
+  --success: #2ECC71;
+  --radius:    12px;
+  --radius-sm: 8px;
+  --shadow:    0 4px 24px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.8);
+}

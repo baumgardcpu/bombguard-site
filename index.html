@@ -1,10 +1,10 @@
-﻿<!-- BombGuard App — v1.0.1.0 -->
+﻿<!-- BombGuard App — v1.0.2.0 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#4a9fd4">
+  <meta name="theme-color" content="#1a1a2e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="BombGuard">
@@ -12,27 +12,27 @@
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/icon-180.png">
   <title>BombGuard — App Hub</title>
+  <link rel="stylesheet" href="/theme.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Exo+2:wght@500;600&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    /* Local names aliased to the shared tokens in /theme.css (a copy of the
+       ecosystem's canonical ../theme.css; keep the two identical). */
     :root {
-      --bg-void:        #4a9fd4;
-      --bg-surface:     #1a1a2e;
-      --bg-surface-alt: #16213e;
-      --color-primary:  #f5820a;
-      --color-primary-glow: #ffb347;
-      --color-secondary: #4a9fd4;
-      --color-secondary-deep: #1e5fa8;
+      --bg-void:        var(--bg-base);
+      --bg-surface:     var(--bg-elevated);
+      --bg-surface-alt: var(--bg-base);
+      --color-primary:  var(--accent-primary);
+      --color-primary-glow: var(--accent-secondary);
+      --color-secondary: var(--accent-primary);
       --color-accent:   #ffd700;
       --color-chrome:   #b0c4de;
-      --text-primary:   #f0f0f0;
-      --text-muted:     #888899;
-      --color-danger:   #e63946;
-      --color-success:  #2ecc71;
-      --gradient-primary: linear-gradient(135deg, #f5820a, #ffb347);
-      --gradient-secondary: linear-gradient(135deg, #1e5fa8, #4a9fd4);
-      --gradient-dark: linear-gradient(180deg, #1a1a2e, #000000);
+      --text-muted:     var(--text-secondary);
+      --color-danger:   var(--danger);
+      --color-success:  var(--success);
+      --gradient-primary: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      --gradient-dark: linear-gradient(180deg, var(--bg-base), #000000);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -55,7 +55,7 @@
       max-width: 400px;
       width: 90%;
       height: auto;
-      filter: drop-shadow(0 0 24px rgba(245, 130, 10, 0.3));
+      filter: drop-shadow(0 0 24px rgba(74, 159, 212, 0.35));
     }
 
     .tagline {
@@ -97,8 +97,9 @@
 
     .app-card {
       background: var(--bg-surface);
-      border: 1px solid rgba(176, 196, 222, 0.15);
-      border-radius: 10px;
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       padding: 1.5rem;
       text-decoration: none;
       color: var(--text-primary);
@@ -110,8 +111,8 @@
 
     .app-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 0 20px rgba(245, 130, 10, 0.25);
-      border-color: rgba(245, 130, 10, 0.4);
+      box-shadow: var(--shadow), 0 0 20px rgba(74, 159, 212, 0.3);
+      border-color: rgba(74, 159, 212, 0.5);
     }
 
     .app-card .app-icon {
@@ -122,7 +123,7 @@
       align-items: center;
       justify-content: center;
       background: var(--bg-surface-alt);
-      border-radius: 10px;
+      border-radius: var(--radius-sm);
       margin-bottom: 0.25rem;
       overflow: hidden;
     }
@@ -164,14 +165,8 @@
       text-align: center;
       padding: 1.5rem 1rem;
       font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.7);
-      border-top: 1px solid rgba(255, 255, 255, 0.15);
-    }
-
-    /* Improve tagline contrast on blue background */
-    .tagline {
-      color: rgba(255, 255, 255, 0.9);
-      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border-glass);
     }
 
     /* Mobile-specific adjustments */
@@ -198,10 +193,30 @@
     @media (hover: none) {
       .app-card:active {
         transform: scale(0.98);
-        box-shadow: 0 0 20px rgba(245, 130, 10, 0.35);
-        border-color: rgba(245, 130, 10, 0.5);
+        box-shadow: var(--shadow), 0 0 20px rgba(74, 159, 212, 0.4);
+        border-color: rgba(74, 159, 212, 0.6);
       }
       .app-card:hover { transform: none; }
+    }
+
+    /* Cards rise in one after another on load; `backwards` keeps hover lifts working after. */
+    .app-card-wrap {
+      animation: card-in 360ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+    }
+    .app-card-wrap:nth-child(2) { animation-delay: 50ms; }
+    .app-card-wrap:nth-child(3) { animation-delay: 100ms; }
+    .app-card-wrap:nth-child(4) { animation-delay: 150ms; }
+    .app-card-wrap:nth-child(5) { animation-delay: 200ms; }
+    .app-card-wrap:nth-child(6) { animation-delay: 250ms; }
+    .app-card-wrap:nth-child(n + 7) { animation-delay: 300ms; }
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: none; }
+    }
+    .app-card:active { transform: translateY(-1px) scale(0.99); }
+    @media (prefers-reduced-motion: reduce) {
+      .app-card-wrap { animation: none; }
+      .app-card { transition: none; }
     }
 
     .app-card-wrap {
@@ -214,10 +229,10 @@
       display: block;
       text-align: center;
       font-size: 0.75rem;
-      color: #4ade80;
+      color: var(--success);
       text-decoration: none;
       padding: 4px 8px;
-      border: 1px solid rgba(74, 222, 128, 0.4);
+      border: 1px solid rgba(46, 204, 113, 0.4);
       border-radius: 6px;
       transition: background 200ms ease;
       font-family: 'Exo 2', sans-serif;
@@ -226,7 +241,7 @@
     }
 
     .android-dl-btn:hover {
-      background: rgba(74, 222, 128, 0.1);
+      background: rgba(46, 204, 113, 0.1);
     }
 
     /* Prevent iOS font-size inflation */
@@ -245,11 +260,11 @@
     <div id="apps-grid" class="apps-grid"></div>
   </main>
 
-  <footer>BombGuard &copy; 2026 &nbsp;|&nbsp; v1.0.1.0 &nbsp;|&nbsp; <a href="/stats" style="color:rgba(255,255,255,0.5);text-decoration:none;">Stats</a></footer>
+  <footer>BombGuard &copy; 2026 &nbsp;|&nbsp; v1.0.2.0 &nbsp;|&nbsp; <a href="/stats" style="color:var(--text-secondary);text-decoration:none;">Stats</a></footer>
 
   <script>
-    // BombGuard App — v1.0.1.0
-    console.log('%cBombGuard v1.0.1.0', 'color: #f5820a; font-weight: bold;');
+    // BombGuard App — v1.0.2.0
+    console.log('%cBombGuard v1.0.2.0', 'color: #4a9fd4; font-weight: bold;');
 
     // =====================================================
     //  APP DIRECTORY — Edit this array to add/remove apps

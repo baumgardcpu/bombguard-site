@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BombGuard — Stats</title>
+  <link rel="stylesheet" href="/theme.css">
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: #0d0d1a;
-      color: #f0f0f0;
+      background: var(--bg-base);
+      color: var(--text-primary);
       font-family: 'Nunito', sans-serif;
       min-height: 100vh;
       padding: 2rem 1rem;
@@ -29,12 +30,12 @@
     header h1 {
       font-family: 'Rajdhani', sans-serif;
       font-size: 2rem;
-      color: #f5820a;
+      color: var(--accent-primary);
       letter-spacing: 2px;
     }
 
     header p {
-      color: #888899;
+      color: var(--text-secondary);
       font-size: 0.85rem;
       margin-top: 0.25rem;
     }
@@ -48,9 +49,10 @@
     }
 
     .card {
-      background: #1a1a2e;
-      border: 1px solid #2a2a4a;
-      border-radius: 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       padding: 1.5rem 1rem;
       text-align: center;
     }
@@ -59,24 +61,24 @@
       font-family: 'Rajdhani', sans-serif;
       font-size: 2.8rem;
       font-weight: 700;
-      color: #f5820a;
+      color: var(--accent-secondary);
       line-height: 1;
     }
 
     .card .label {
       font-size: 0.8rem;
-      color: #888899;
+      color: var(--text-secondary);
       margin-top: 0.4rem;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
 
-    .card.blue .number { color: #4a9fd4; }
+    .card.blue .number { color: var(--accent-primary); }
 
     .section-title {
       font-family: 'Rajdhani', sans-serif;
       font-size: 1.1rem;
-      color: #888899;
+      color: var(--text-secondary);
       letter-spacing: 2px;
       text-transform: uppercase;
       max-width: 700px;
@@ -87,9 +89,10 @@
     .table-wrap {
       max-width: 700px;
       margin: 0 auto 2rem;
-      background: #1a1a2e;
-      border: 1px solid #2a2a4a;
-      border-radius: 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       overflow: hidden;
     }
 
@@ -100,8 +103,8 @@
     }
 
     th {
-      background: #16213e;
-      color: #888899;
+      background: var(--bg-base);
+      color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 1px;
       font-size: 0.75rem;
@@ -111,12 +114,12 @@
 
     td {
       padding: 0.7rem 1rem;
-      border-top: 1px solid #2a2a4a;
-      color: #f0f0f0;
+      border-top: 1px solid var(--border-glass);
+      color: var(--text-primary);
       white-space: nowrap;
     }
 
-    tr:hover td { background: #16213e; }
+    tr:hover td { background: var(--surface-tint); }
 
     .badge {
       display: inline-block;
@@ -126,20 +129,38 @@
       font-weight: 600;
     }
 
-    .badge.install { background: #f5820a22; color: #f5820a; }
-    .badge.visit   { background: #4a9fd422; color: #4a9fd4; }
-    .badge.ios     { background: #ffffff15; color: #ccc; }
-    .badge.android { background: #2ecc7122; color: #2ecc71; }
-    .badge.desktop { background: #ffffff10; color: #aaa; }
+    .badge.install { background: rgba(255, 179, 71, 0.15); color: var(--accent-secondary); }
+    .badge.visit   { background: rgba(74, 159, 212, 0.15); color: var(--accent-primary); }
+    .badge.ios     { background: var(--border-glass); color: var(--text-primary); }
+    .badge.android { background: rgba(46, 204, 113, 0.15); color: var(--success); }
+    .badge.desktop { background: var(--surface-tint); color: var(--text-secondary); }
 
-    .loading { text-align: center; color: #888899; padding: 3rem; }
+    .loading { text-align: center; color: var(--text-secondary); padding: 3rem; }
+    .bone {
+      display: inline-block;
+      border-radius: 6px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.12) 45%, rgba(255,255,255,0.05) 65%);
+      background-size: 300% 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+    .skeleton-rows { display: grid; gap: 12px; padding: 1.25rem; }
+    .skeleton-rows .bone { height: 18px; }
+    @keyframes shimmer {
+      from { background-position: 100% 0; }
+      to { background-position: 0 0; }
+    }
+    .error-state { text-align: center; color: var(--text-secondary); padding: 2.5rem 1rem; }
+    .error-state strong { display: block; color: var(--text-primary); margin-bottom: 0.25rem; }
+    @media (prefers-reduced-motion: reduce) {
+      .bone { animation: none; }
+    }
     .refresh-btn {
       display: block;
       margin: 0 auto;
-      background: #f5820a;
-      color: #000;
+      background: var(--accent-primary);
+      color: var(--bg-base);
       border: none;
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       padding: 0.6rem 1.5rem;
       font-family: 'Rajdhani', sans-serif;
       font-size: 1rem;
@@ -148,7 +169,7 @@
       letter-spacing: 1px;
     }
 
-    .refresh-btn:hover { background: #ffb347; }
+    .refresh-btn:hover { background: var(--accent-primary-hover); }
   </style>
 </head>
 <body>
@@ -180,7 +201,13 @@
 
 <p class="section-title">Recent Events</p>
 <div class="table-wrap">
-  <div class="loading" id="table-loading">Loading events...</div>
+  <div class="loading skeleton-rows" id="table-loading" aria-busy="true" aria-label="Loading events">
+    <span class="bone" style="width: 92%"></span>
+    <span class="bone" style="width: 78%"></span>
+    <span class="bone" style="width: 86%"></span>
+    <span class="bone" style="width: 70%"></span>
+    <span class="bone" style="width: 82%"></span>
+  </div>
   <table id="events-table" style="display:none">
     <thead>
       <tr>
@@ -206,7 +233,25 @@
     const res = await fetch(url, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
     });
+    if (!res.ok) throw new Error(`Stats request failed (${res.status})`);
     return res.json();
+  }
+
+  // Event fields are visitor-supplied (platform, city, country), so escape them
+  // before they go into innerHTML.
+  function esc(value) {
+    return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  }
+
+  // Badge class names come from a fixed allowlist, never from the data itself.
+  const EVENT_TYPES = ['visit', 'install'];
+  const PLATFORMS = ['ios', 'android', 'desktop'];
+
+  const NUMBER_IDS = ['total-visits', 'total-installs', 'visits-today', 'installs-today'];
+  function showNumberSkeletons() {
+    NUMBER_IDS.forEach(id => {
+      document.getElementById(id).innerHTML = '<span class="bone" style="width: 3.5rem; height: 2rem; vertical-align: middle"></span>';
+    });
   }
 
   function formatTime(iso) {
@@ -221,11 +266,26 @@
 
   async function loadStats() {
     document.getElementById('last-updated').textContent = 'Refreshing...';
+    showNumberSkeletons();
 
-    const [all, recent] = await Promise.all([
-      query({ select: 'event_type,created_at', order: 'created_at.desc' }),
-      query({ select: 'event_type,platform,country,city,created_at', order: 'created_at.desc', limit: 50 })
-    ]);
+    let all, recent;
+    try {
+      [all, recent] = await Promise.all([
+        query({ select: 'event_type,created_at', order: 'created_at.desc' }),
+        query({ select: 'event_type,platform,country,city,created_at', order: 'created_at.desc', limit: 50 })
+      ]);
+    } catch (err) {
+      console.error('[BombGuard stats]', err);
+      NUMBER_IDS.forEach(id => { document.getElementById(id).textContent = '—'; });
+      document.getElementById('events-table').style.display = 'none';
+      const box = document.getElementById('table-loading');
+      box.style.display = 'block';
+      box.className = 'error-state';
+      box.removeAttribute('aria-busy');
+      box.innerHTML = '<strong>Couldn\'t load stats</strong>Check your connection, then hit Refresh.';
+      document.getElementById('last-updated').textContent = 'Last refresh failed';
+      return;
+    }
 
     const today = todayISO();
     let visits = 0, installs = 0, visitsToday = 0, installsToday = 0;
@@ -242,14 +302,18 @@
     document.getElementById('installs-today').textContent = installsToday.toLocaleString();
 
     const tbody = document.getElementById('events-body');
-    tbody.innerHTML = recent.map(e => `
+    tbody.innerHTML = recent.map(e => {
+      const type = EVENT_TYPES.includes(e.event_type) ? e.event_type : '';
+      const platform = PLATFORMS.includes(e.platform) ? e.platform : 'desktop';
+      const place = e.city && e.country ? `${e.city}, ${e.country}` : e.country || '—';
+      return `
       <tr>
-        <td><span class="badge ${e.event_type}">${e.event_type}</span></td>
-        <td><span class="badge ${e.platform || 'desktop'}">${e.platform || 'desktop'}</span></td>
-        <td>${e.city && e.country ? `${e.city}, ${e.country}` : e.country || '—'}</td>
-        <td>${formatTime(e.created_at)}</td>
-      </tr>
-    `).join('');
+        <td><span class="badge ${type}">${esc(e.event_type)}</span></td>
+        <td><span class="badge ${platform}">${esc(e.platform || 'desktop')}</span></td>
+        <td>${esc(place)}</td>
+        <td>${esc(formatTime(e.created_at))}</td>
+      </tr>`;
+    }).join('');
 
     document.getElementById('table-loading').style.display = 'none';
     document.getElementById('events-table').style.display = 'table';

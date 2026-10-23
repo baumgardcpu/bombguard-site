@@ -1,5 +1,5 @@
-const CACHE = 'bombguard-v7';
-const ASSETS = ['/'];
+const CACHE = 'bombguard-v9';
+const ASSETS = ['/', '/theme.css'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
